@@ -36,4 +36,45 @@ Regex is a sequence of characters that defines a search pattern used to match, f
 </details>
 
 ---
+
+
+<details>
+
+<summary>
+    <strong style="font-size: 1.5em;" id="1">
+        Lexer : 
+    </strong>
+</summary>
+
+### Definition ➝
+A lexer converts raw source code into a sequence of tokens. It breaks the input program into meaningful pieces called tokens.
+
+### Token ➝
+
+This contains :
+
+- Type (keyword, identifier, operator, etc.)
+- Value
+- Line number (if error occurs)
+
+### Working ➝
+
+- Step 1 : Pattern Creation
+
+        Pattern is created like
+
+            (?P<IDENTIFIER>[a-zA-Z_]\w*) or 
+            (?P<NUMBER>\d+) etc..
+- Step 2 : Engine Processing
+
+        Pattern is compiled by Regex and then the engine scans the text left to right and tries to match the pattern.
+- Step 3 : Matching
+
+        If the pattern matches part of the string → match found
+        We access these matched members through self.regex.finditer():
+            match.lastgroup
+            match.group()
+</details>
+
+---
   

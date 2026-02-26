@@ -1,4 +1,4 @@
-# this document is used for tokenization of cpp code
+# this document is used for tokenization of cpp code, makes it easier to convert in python
 import re
 from dataclasses import dataclass
 
