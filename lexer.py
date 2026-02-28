@@ -32,9 +32,11 @@ class Lexer:
         # categorizing the data into the type they belong to........ (for creating regex patterns)
         self.token_specification = [
             ("COMMENT",   r"//.*"),
+            ("INCLUDE",   r"#include\s*<[^>]+>"),
             ("STRING",    r"\".*?\""),
             ("FLOAT",     r"\d+\.\d+"),
             ("NUMBER",    r"\d+"),
+            ("SHIFT_OP",  r"<<|>>"),
             ("OPERATOR",  r"==|!=|<=|>=|\+\+|--|[+\-*/=<>]"),
             ("DELIMITER", r"[;,\(\)\{\}]"),
             ("IDENTIFIER",r"[A-Za-z_]\w*"),
@@ -55,6 +57,8 @@ class Lexer:
         # regex.finditer(self.code) scans the provided code and returns matches one by one (through loop), from regex (compiled above)
         for match in self.regex.finditer(self.code):
             kind = match.lastgroup
+            if kind is None:
+                raise RuntimeError("Unexpected unnamed match")
             value = match.group()
 
             if kind == "NEWLINE":
