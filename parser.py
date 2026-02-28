@@ -151,6 +151,11 @@ class Parser:
             else:
                 raise Exception(f"Unsupported keyword {token.value}")
 
+        elif token.type == "OPERATOR" and token.value in ("++", "--"):
+            operator = self.eat("OPERATOR").value
+            name = self.eat("IDENTIFIER").value
+            self.eat("DELIMITER")  # ;
+            return UnaryOp(operator, Identifier(name), postfix=False)
 
         elif token.type == "IDENTIFIER":
             if token.value == "cout":
@@ -164,6 +169,14 @@ class Parser:
                 call = self.function_call(name)
                 self.eat("DELIMITER")  # eat ';'
                 return call
+            elif self.pos + 1 < len(self.tokens) and \
+                    self.tokens[self.pos + 1].type == "OPERATOR" and \
+                    self.tokens[self.pos + 1].value in ("++", "--"):
+
+                name = self.eat("IDENTIFIER").value
+                operator = self.eat("OPERATOR").value
+                self.eat("DELIMITER")  # ;
+                return UnaryOp(operator, Identifier(name), postfix=True)
             else:
                 return self.assignment()
 
