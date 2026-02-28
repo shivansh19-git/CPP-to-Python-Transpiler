@@ -234,7 +234,7 @@ class Parser:
 
         if self.current_token().value != ")":
             while True:
-                args.append(self.expression())
+                args.append(self.comparison())
 
                 if self.current_token().value == ",":
                     self.eat("DELIMITER")  # eat ','
@@ -256,7 +256,7 @@ class Parser:
 
         while self.current_token() and self.current_token().type == "SHIFT_OP":
             self.eat("SHIFT_OP")  # eat <<
-            values.append(self.expression())
+            values.append(self.comparison())
 
         self.eat("DELIMITER")  # ;
 
@@ -291,7 +291,7 @@ class Parser:
         value = None
         if self.current_token().value == "=":
             self.eat("OPERATOR")
-            value = self.expression()
+            value = self.comparison()
 
         if expect_semicolon:
             self.eat("DELIMITER")  # ;
@@ -314,7 +314,7 @@ class Parser:
     def assignment(self,expect_semicolon=True):
         name = self.eat("IDENTIFIER").value
         self.eat("OPERATOR")  # =
-        value = self.expression()
+        value = self.comparison()
 
         if expect_semicolon:
             self.eat("DELIMITER")  # ;
@@ -328,7 +328,7 @@ class Parser:
         self.eat("KEYWORD")  # if
         self.eat("DELIMITER")  # (
 
-        condition = self.expression()
+        condition = self.comparison()
 
         self.eat("DELIMITER")  # )
 
@@ -372,7 +372,7 @@ class Parser:
 
         # Condition
         if self.current_token().type != "DELIMITER":
-            condition = self.expression()
+            condition = self.comparison()
         else:
             condition = None
 
@@ -382,7 +382,7 @@ class Parser:
         if self.current_token().type == "IDENTIFIER":
             update = self.assignment(expect_semicolon=False)
         else:
-            update = self.expression()
+            update = self.comparison()
 
         self.eat("DELIMITER")  # )
 
@@ -398,7 +398,7 @@ class Parser:
         self.eat("KEYWORD")  # while
         self.eat("DELIMITER")  # (
 
-        condition = self.expression()
+        condition = self.comparison()
 
         self.eat("DELIMITER")  # )
 
@@ -412,18 +412,40 @@ class Parser:
 
     def return_statement(self):
         self.eat("KEYWORD")  # return
-        value = self.expression()
+        value = self.comparison()
         self.eat("DELIMITER")  # ;
         return ReturnStatement(value)
 
     # -----------------------------
     # Expressions
+    # comparison()   ← NEW (handles < > <= >=)
+    #   expression()   ← handles + -
+    #       term()         ← handles * /
+    #           factor()       ← base values (your current term body)
     # -----------------------------
+
+    def comparison(self):
+        left = self.expression()
+
+        while (
+                self.current_token()
+                and self.current_token().type == "OPERATOR"
+                and self.current_token().value in ("<", ">", "<=", ">=")
+        ):
+            operator = self.eat("OPERATOR").value
+            right = self.expression()
+            left = BinaryOp(left, operator, right)
+
+        return left
 
     def expression(self):
         left = self.term()
 
-        while self.current_token() and self.current_token().type == "OPERATOR":
+        while (
+                self.current_token()
+                and self.current_token().type == "OPERATOR"
+                and self.current_token().value in ("+", "-")
+        ):
             operator = self.eat("OPERATOR").value
             right = self.term()
             left = BinaryOp(left, operator, right)
@@ -431,6 +453,20 @@ class Parser:
         return left
 
     def term(self):
+        left = self.factor()
+
+        while (
+                self.current_token()
+                and self.current_token().type == "OPERATOR"
+                and self.current_token().value in ("*", "/")
+        ):
+            operator = self.eat("OPERATOR").value
+            right = self.factor()
+            left = BinaryOp(left, operator, right)
+
+        return left
+
+    def factor(self):
         token = self.current_token()
 
         if token.type == "NUMBER":
@@ -452,7 +488,7 @@ class Parser:
 
         elif token.value == "(":
             self.eat("DELIMITER")
-            expr = self.expression()
+            expr = self.comparison()
             self.eat("DELIMITER")
             return expr
 
