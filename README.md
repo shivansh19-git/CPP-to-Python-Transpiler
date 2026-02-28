@@ -4,7 +4,8 @@ Developed a rule based C++ to Python transpiler that performs lexical analysis a
 We use **<sup>[1](#1) </sup>Regular Expressions (Regex)** to tokenize syntaxes, and convert by compling Regex's tokens.
 <br>
 We created and stored these Regex based tokens into the **<sup>[2](#2) </sup>Lexer**. 
-
+<br>
+We then used **<sup>[3](#3) </sup>Parser**, which converts the tokens (obtained from `lexer`),into structure.
 ---
 
 <details>
@@ -73,6 +74,46 @@ This contains :
 
         After matching, it creates a token and moves forward.
         These tokens are then stored together to be used later.
+</details>
+
+---
+  
+<details>
+
+<summary>
+    <strong style="font-size: 1.5em;" id="3">
+        Parser : 
+    </strong>
+</summary>
+
+### Definition ➝
+A parser is the phase of a compiler/transpiler that takes tokens from the lexer and checks whether they follow the grammar of the language, building a structured representation (usually an AST).<br>
+_***AST** (Abstract Syntax Tree)_
+
+### Flow ➝
+
+**_Characters → (Lexer) → Tokens → (Parser) → AST_**
+
+### Working ➝
+
+- Step 1 : Parser receives token stream
+
+        tokens = [
+            ('KEYWORD', 'int'),
+            ('IDENTIFIER', 'x'),.......
+        ]
+
+- Step 2 : Parser Reads Tokens Sequentially
+
+        Traverses through a pointer -
+                                      self.current_token()
+        And consumes tokens through - 
+                                      self.eat("IDENTIFIER")  
+
+
+- Step 3 : Grammar based Decision-Making
+
+        Parser functions mirror grammar rules, which we provide, according to how it should be.
 </details>
 
 ---
