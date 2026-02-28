@@ -6,6 +6,7 @@ We use **<sup>[1](#1) </sup>Regular Expressions (Regex)** to tokenize syntaxes, 
 We created and stored these Regex based tokens into the **<sup>[2](#2) </sup>Lexer**. 
 <br>
 We then used **<sup>[3](#3) </sup>Parser**, which converts the tokens (obtained from `lexer`),into structure.
+
 ---
 
 <details>
