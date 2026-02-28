@@ -29,6 +29,12 @@ class CinStatement:
     variables: list
 
 @dataclass
+class UnaryOp:
+    operator: str
+    operand: object
+    postfix: bool = False
+
+@dataclass
 class VarDeclaration:
     var_type: str
     name: str
@@ -313,7 +319,11 @@ class Parser:
 
     def assignment(self,expect_semicolon=True):
         name = self.eat("IDENTIFIER").value
-        self.eat("OPERATOR")  # =
+
+        op = self.eat("OPERATOR").value  # =
+        if op != "=":
+            raise Exception("Expected '=' in assignment")
+
         value = self.comparison()
 
         if expect_semicolon:
@@ -379,10 +389,10 @@ class Parser:
         self.eat("DELIMITER")  # ;
 
         # Update
-        if self.current_token().type == "IDENTIFIER":
-            update = self.assignment(expect_semicolon=False)
-        else:
+        if self.current_token().type != "DELIMITER":
             update = self.comparison()
+        else:
+            update = None
 
         self.eat("DELIMITER")  # )
 
@@ -430,7 +440,7 @@ class Parser:
         while (
                 self.current_token()
                 and self.current_token().type == "OPERATOR"
-                and self.current_token().value in ("<", ">", "<=", ">=")
+                and self.current_token().value in ("<", ">", "<=", ">=", "==", "!=")
         ):
             operator = self.eat("OPERATOR").value
             right = self.expression()
@@ -469,7 +479,19 @@ class Parser:
     def factor(self):
         token = self.current_token()
 
-        if token.type == "NUMBER":
+        if (
+                token.type == "OPERATOR"
+                and token.value in ("++", "--")
+        ):
+            operator = self.eat("OPERATOR").value
+            operand = self.factor()
+
+            if not isinstance(operand, Identifier):
+                raise Exception("++/-- can only be applied to identifiers")
+
+            return UnaryOp(operator, operand, postfix=False)
+
+        elif token.type == "NUMBER":
             return Number(self.eat("NUMBER").value)
 
         elif token.type == "FLOAT":
@@ -484,6 +506,15 @@ class Parser:
             # If next token is '(' → function call
             if self.current_token() and self.current_token().value == "(":
                 return self.function_call(name)
+
+            # Postfix ++ or --
+            elif (
+                    self.current_token()
+                    and self.current_token().type == "OPERATOR"
+                    and self.current_token().value in ("++", "--")
+            ):
+                operator = self.eat("OPERATOR").value
+                return UnaryOp(operator, Identifier(name), postfix=True)
             return Identifier(name)
 
         elif token.value == "(":
