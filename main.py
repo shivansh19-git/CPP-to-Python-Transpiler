@@ -1,7 +1,4 @@
-import sys
-from lexer import Lexer
 from parser import (
-    Parser,
     Program,
     FunctionDef,
     FunctionCall,
@@ -184,43 +181,3 @@ class CodeGenerator:
             return node.name
 
         return ""
-
-
-# ---------------------------------
-# DRIVER
-# ---------------------------------
-
-def main():
-    if len(sys.argv) != 3:
-        print("Usage: python main.py <input.cpp>")
-        return
-
-    input_filename = sys.argv[1]
-
-    # Read C++ code
-    with open(input_filename, "r") as file:
-        code = file.read()
-
-    # Lexical Analysis
-    lexer = Lexer(code)
-    tokens = lexer.tokenize()
-
-    # Parsing
-    parser = Parser(tokens)
-    ast = parser.parse()
-
-    # Code Generation
-    generator = CodeGenerator()
-    python_code = generator.generate(ast)
-
-    # Write to output file
-    output_filename = sys.argv[2]
-    with open(output_filename, "w") as file:
-        file.write(python_code)
-
-    print(" Transpilation completed successfully!")
-    print("Generated file: output.py")
-
-
-if __name__ == "__main__":
-    main()

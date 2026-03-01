@@ -138,7 +138,7 @@ function logToConsole(message, type = 'info') {
   consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }
 
-// Transpile function (mock for now - will integrate with Python backend)
+// Transpile function
 async function transpile() {
   const cppCode = cppInput.value.trim();
 
@@ -151,26 +151,32 @@ async function transpile() {
   transpileBtn.disabled = true;
   transpileBtn.innerHTML = `
     <svg class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581
+        m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+      </path>
     </svg>
     <span>Transpiling...</span>
   `;
 
   try {
-    // Simulate API call to Python backend
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const response = await fetch("http://localhost:5000/transpile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ code: cppCode })
+    });
 
-    // Mock Python output (replace with actual API call)
-    const pythonCode = `def main():
-    for x in range(50, 100):
-        print(x, "Hello!")
+    const result = await response.json();
 
-if __name__ == "__main__":
-    main()`;
+    if (!response.ok) {
+      throw new Error(result.error || "Transpilation failed");
+    }
 
-    pythonOutput.textContent = pythonCode;
-    pythonOutput.classList.add('text-gray-100');
-    logToConsole('Transpilation completed successfully!', 'success');
+    pythonOutput.textContent = result.output;
+    pythonOutput.classList.add("text-gray-100");
+    logToConsole("Transpilation completed successfully!", "success");
 
   } catch (error) {
     logToConsole(`Error: ${error.message}`, 'error');
@@ -179,7 +185,9 @@ if __name__ == "__main__":
     transpileBtn.disabled = false;
     transpileBtn.innerHTML = `
       <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13 7l5 5m0 0l-5 5m5-5H6">
+        </path>
       </svg>
       <span>Transpile</span>
     `;
