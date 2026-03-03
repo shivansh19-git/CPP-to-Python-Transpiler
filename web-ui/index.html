@@ -5,15 +5,40 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>C++ → Python Transpiler</title>
+    <style>
+      /* inline CSS-var driven styles that Tailwind can't do */
+      body { background: var(--bg-base); color: var(--text-primary); }
+      .v-sidebar  { background: var(--bg-sidebar);  border-color: var(--border-main); }
+      .v-panel    { background: var(--bg-sidebar);  border-color: var(--border-main); }
+      .v-titlebar { background: var(--bg-titlebar); border-color: var(--border-main); }
+      .v-editor   { background: var(--bg-editor); }
+      .v-linenums { background: var(--bg-editor);   border-color: var(--border-main); color: var(--text-muted); }
+      .v-tab-bar  { background: var(--bg-sidebar);  border-color: var(--border-main); }
+      .v-console  { background: var(--bg-console); }
+      .v-consolebar{ background: var(--bg-titlebar); border-color: var(--border-main); }
+      .v-statusbar{ background: var(--bg-titlebar); border-color: var(--border-main); }
+      .v-border-r { border-right: 1px solid var(--border-main); }
+      .v-border-b { border-bottom: 1px solid var(--border-main); }
+      .v-border-t { border-top: 1px solid var(--border-main); }
+      .v-text     { color: var(--text-primary); }
+      .v-muted    { color: var(--text-muted); }
+      .v-secondary{ color: var(--text-secondary); }
+      .v-input    { background: var(--bg-input); border-color: var(--border-main); color: var(--text-primary); }
+      .v-select   { background: var(--bg-input); border-color: var(--border-main); color: var(--text-primary); }
+      .v-btn-sm   { background: var(--bg-hover); color: var(--text-muted); }
+      .v-btn-sm:hover { color: var(--text-primary); }
+      .v-center-col{ background: var(--bg-console); }
+      .v-section-header { color: var(--text-muted); border-color: var(--border-main); }
+    </style>
   </head>
-  <body class="bg-animated text-white" style="height:100vh; overflow:hidden;">
+  <body class="bg-animated" style="height:100vh; overflow:hidden;">
 
     <div class="flex h-screen overflow-hidden">
 
-      <!-- Activity Bar (VS Code left icons) -->
-      <div class="flex flex-col bg-gray-900 border-r border-gray-800 z-10" style="width:48px; min-width:48px;">
-        <div class="flex items-center justify-center h-12 border-b border-gray-800">
-          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Activity Bar -->
+      <div class="v-sidebar v-border-r flex flex-col z-10" style="width:48px; min-width:48px;">
+        <div class="v-border-b flex items-center justify-center h-12">
+          <svg class="w-5 h-5" style="color:var(--accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
           </svg>
         </div>
@@ -28,6 +53,11 @@
           </svg>
         </button>
         <div class="flex-1"></div>
+        <button id="themeToggle" class="sidebar-icon tooltip" data-tip="Toggle Theme">
+          <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+        </button>
         <button id="sidebarSettings" class="sidebar-icon tooltip" data-tip="Settings">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -37,13 +67,13 @@
       </div>
 
       <!-- Side Panel -->
-      <div id="sidePanel" class="flex flex-col bg-gray-900 border-r border-gray-800 panel-slide overflow-hidden" style="width:220px; min-width:220px;">
+      <div id="sidePanel" class="v-panel v-border-r flex flex-col panel-slide overflow-hidden" style="width:220px; min-width:220px;">
 
-        <!-- History Panel -->
+        <!-- History -->
         <div id="panelHistory" class="flex flex-col h-full">
-          <div class="px-3 py-2 border-b border-gray-800 flex items-center justify-between">
-            <span class="text-xs font-semibold text-gray-400 uppercase tracking-widest">History</span>
-            <button id="clearHistory" class="text-xs text-gray-500 hover:text-red-400 transition-colors" title="Clear all">
+          <div class="v-border-b px-3 py-2 flex items-center justify-between v-section-header">
+            <span class="text-xs font-semibold uppercase tracking-widest">History</span>
+            <button id="clearHistory" class="v-muted hover:text-red-400 transition-colors" title="Clear all">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
@@ -51,46 +81,46 @@
           </div>
           <div id="historyList" class="flex-1 overflow-y-auto py-1">
             <div id="historyEmpty" class="px-4 py-8 text-center">
-              <svg class="w-8 h-8 text-gray-700 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-8 h-8 mx-auto mb-2" style="color:var(--text-faint)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <p class="text-xs text-gray-600">No history yet</p>
-              <p class="text-xs text-gray-700 mt-1">Transpilations appear here</p>
+              <p class="text-xs v-muted">No history yet</p>
+              <p class="text-xs mt-1" style="color:var(--text-faint)">Transpilations appear here</p>
             </div>
           </div>
         </div>
 
-        <!-- Search Panel -->
+        <!-- Search -->
         <div id="panelSearch" class="flex flex-col h-full hidden">
-          <div class="px-3 py-2 border-b border-gray-800">
-            <span class="text-xs font-semibold text-gray-400 uppercase tracking-widest">Search History</span>
+          <div class="v-border-b px-3 py-2 v-section-header">
+            <span class="text-xs font-semibold uppercase tracking-widest">Search History</span>
           </div>
           <div class="px-3 py-2">
-            <input id="searchInput" type="text" placeholder="Search snippets..." class="w-full bg-gray-800 text-gray-300 text-xs px-3 py-1.5 rounded border border-gray-700 focus:outline-none focus:border-blue-500 font-mono" />
+            <input id="searchInput" type="text" placeholder="Search snippets..." class="v-input w-full text-xs px-3 py-1.5 rounded border focus:outline-none font-mono" style="focus:border-color:var(--accent)" />
           </div>
           <div id="searchResults" class="flex-1 overflow-y-auto py-1">
-            <p class="text-xs text-gray-600 px-4 py-4">Type to search...</p>
+            <p class="text-xs v-muted px-4 py-4">Type to search...</p>
           </div>
         </div>
 
-        <!-- Settings Panel -->
+        <!-- Settings -->
         <div id="panelSettings" class="flex flex-col h-full hidden">
-          <div class="px-3 py-2 border-b border-gray-800">
-            <span class="text-xs font-semibold text-gray-400 uppercase tracking-widest">Settings</span>
+          <div class="v-border-b px-3 py-2 v-section-header">
+            <span class="text-xs font-semibold uppercase tracking-widest">Settings</span>
           </div>
           <div class="px-3 py-3 space-y-4">
             <div>
-              <label class="text-xs text-gray-400 block mb-1">Font Size</label>
+              <label class="text-xs v-muted block mb-1">Font Size</label>
               <input id="fontSizeSlider" type="range" min="11" max="18" value="13" class="w-full accent-blue-500" />
-              <span id="fontSizeLabel" class="text-xs text-gray-500">13px</span>
+              <span id="fontSizeLabel" class="text-xs v-muted">13px</span>
             </div>
             <div>
-              <label class="text-xs text-gray-400 block mb-2">Word Wrap</label>
-              <button id="wordWrapToggle" class="text-xs bg-gray-800 text-gray-300 px-3 py-1 rounded border border-gray-700 hover:border-blue-500 transition-colors">Off</button>
+              <label class="text-xs v-muted block mb-2">Word Wrap</label>
+              <button id="wordWrapToggle" class="v-input text-xs px-3 py-1 rounded border transition-colors">Off</button>
             </div>
             <div>
-              <label class="text-xs text-gray-400 block mb-1">Max History Items</label>
-              <select id="maxHistorySelect" class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700 focus:outline-none focus:border-blue-500 w-full">
+              <label class="text-xs v-muted block mb-1">Max History Items</label>
+              <select id="maxHistorySelect" class="v-select text-xs px-2 py-1 rounded border focus:outline-none w-full">
                 <option value="10">10</option>
                 <option value="25" selected>25</option>
                 <option value="50">50</option>
@@ -100,49 +130,48 @@
         </div>
       </div>
 
-      <!-- Main Editor Area -->
+      <!-- Main Area -->
       <div class="flex-1 flex flex-col overflow-hidden">
 
         <!-- Title bar -->
-        <div class="flex items-center justify-between bg-gray-900 border-b border-gray-800 px-4 py-1" style="min-height:34px;">
-          <span class="text-xs text-gray-500 font-mono">C++ <span class="text-blue-400">→</span> Python Transpiler</span>
-          <span id="statusIndicator" class="text-xs text-green-400 flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block animate-pulse"></span>
+        <div class="v-titlebar v-border-b flex items-center justify-between px-4 py-1" style="min-height:34px;">
+          <span class="text-xs font-mono v-muted">C++ <span style="color:var(--accent)">→</span> Python Transpiler</span>
+          <span id="statusIndicator" class="text-xs flex items-center gap-1.5" style="color:#22c55e">
+            <span class="w-1.5 h-1.5 rounded-full inline-block animate-pulse" style="background:#22c55e"></span>
             Ready
           </span>
         </div>
 
-        <!-- Editors Row -->
+        <!-- Editors -->
         <div class="flex-1 flex overflow-hidden">
 
-          <!-- Left: C++ Editor -->
-          <div class="flex-1 flex flex-col overflow-hidden border-r border-gray-800">
-            <div class="flex bg-gray-900 border-b border-gray-800" style="min-height:35px;">
+          <!-- C++ Editor -->
+          <div class="flex-1 flex flex-col overflow-hidden v-border-r">
+            <div class="v-tab-bar v-border-b flex" style="min-height:35px;">
               <div class="file-tab active">
-                <svg class="w-3 h-3 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                <svg class="w-3 h-3" style="color:var(--accent)" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12.89 3L14.85 3.4L11.11 21L9.15 20.6L12.89 3M19.59 12L16 8.41V5.58L22.42 12L16 18.41V15.58L19.59 12M1.58 12L8 5.58V8.41L4.41 12L8 15.58V18.41L1.58 12Z"/>
                 </svg>
                 input.cpp
               </div>
             </div>
-            <div class="flex-1 overflow-auto flex" style="background:#0d1117;">
-              <div id="lineNumbers" class="select-none text-right text-gray-600 font-mono py-4 pr-3 pl-4 border-r border-gray-800 text-xs leading-5" style="min-width:48px; background:#0d1117; line-height:1.6rem;">
+            <div class="flex-1 overflow-auto flex v-editor">
+              <div id="lineNumbers" class="v-linenums v-border-r select-none text-right font-mono py-4 pr-3 pl-4 text-xs" style="min-width:48px; line-height:1.6rem;">
                 <div>1</div>
               </div>
               <textarea
                 id="cppInput"
-                class="code-editor flex-1 bg-transparent text-gray-100 resize-none focus:outline-none px-4 py-4 text-xs"
-                style="line-height:1.6rem;"
+                class="code-editor flex-1 resize-none focus:outline-none px-4 py-4"
                 placeholder="// Enter your C++ code here..."
                 spellcheck="false"
               ></textarea>
             </div>
-            <div class="flex items-center justify-between bg-gray-900 border-t border-gray-800 px-3 py-1">
+            <div class="v-statusbar v-border-t flex items-center justify-between px-3 py-1">
               <div class="flex items-center gap-3">
-                <span class="text-xs text-blue-400 font-mono">C++17</span>
-                <span id="cppLineCount" class="text-xs text-gray-600">1 line</span>
+                <span class="text-xs font-mono" style="color:var(--accent)">C++17</span>
+                <span id="cppLineCount" class="text-xs v-muted">1 line</span>
               </div>
-              <button id="clearCpp" class="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1">
+              <button id="clearCpp" class="text-xs v-muted hover:v-text transition-colors flex items-center gap-1">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -151,34 +180,34 @@
             </div>
           </div>
 
-          <!-- Center: Transpile Button -->
-          <div class="flex flex-col items-center justify-center gap-2 px-2" style="background:#080d16; min-width:72px;">
+          <!-- Transpile Button -->
+          <div class="v-center-col flex flex-col items-center justify-center gap-2 px-2" style="min-width:72px;">
             <button id="transpileBtn" class="btn-transpile text-white rounded-lg shadow-lg flex flex-col items-center gap-2 py-5 px-3 w-full">
               <svg id="transpileIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
               </svg>
               <span class="text-xs font-semibold" style="writing-mode:vertical-rl; letter-spacing:0.12em;">TRANSPILE</span>
             </button>
-            <span class="text-gray-700" style="font-size:9px; text-align:center;">Ctrl+↵</span>
+            <span class="v-muted" style="font-size:9px; text-align:center;">Ctrl+↵</span>
           </div>
 
-          <!-- Right: Python Output -->
+          <!-- Python Output -->
           <div class="flex-1 flex flex-col overflow-hidden">
-            <div class="flex bg-gray-900 border-b border-gray-800" style="min-height:35px;">
+            <div class="v-tab-bar v-border-b flex" style="min-height:35px;">
               <div class="file-tab active">
-                <svg class="w-3 h-3 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                <svg class="w-3 h-3" style="color:#f59e0b" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12.89 3L14.85 3.4L11.11 21L9.15 20.6L12.89 3M19.59 12L16 8.41V5.58L22.42 12L16 18.41V15.58L19.59 12M1.58 12L8 5.58V8.41L4.41 12L8 15.58V18.41L1.58 12Z"/>
                 </svg>
                 output.py
               </div>
               <div class="flex items-center gap-1 ml-auto px-2">
-                <button id="copyOutput" class="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-700">
+                <button id="copyOutput" class="text-xs v-muted transition-colors flex items-center gap-1 px-2 py-1 rounded hover:v-text" style="hover:background:var(--bg-hover)">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                   </svg>
                   Copy
                 </button>
-                <button id="downloadBtn" class="text-xs text-gray-500 hover:text-green-400 transition-colors flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-700">
+                <button id="downloadBtn" class="text-xs v-muted hover:text-green-500 transition-colors flex items-center gap-1 px-2 py-1 rounded">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                   </svg>
@@ -186,26 +215,26 @@
                 </button>
               </div>
             </div>
-            <div class="flex-1 overflow-auto p-4" style="background:#0d1117;">
-              <pre id="pythonOutput" class="code-editor text-gray-500 whitespace-pre-wrap text-xs" style="line-height:1.6rem;">Python output will appear here...</pre>
+            <div class="flex-1 overflow-auto p-4 v-editor">
+              <pre id="pythonOutput" class="code-editor whitespace-pre-wrap" style="color:var(--text-muted)">Python output will appear here...</pre>
             </div>
-            <div class="flex items-center justify-between bg-gray-900 border-t border-gray-800 px-3 py-1">
-              <span class="text-xs text-yellow-500 font-mono">Python 3</span>
-              <span id="pythonLineCount" class="text-xs text-gray-600"></span>
+            <div class="v-statusbar v-border-t flex items-center justify-between px-3 py-1">
+              <span class="text-xs font-mono" style="color:#f59e0b">Python 3</span>
+              <span id="pythonLineCount" class="text-xs v-muted"></span>
             </div>
           </div>
         </div>
 
-        <!-- Console / Terminal -->
-        <div class="border-t border-gray-800 flex flex-col" style="height:120px; background:#080d16;">
-          <div class="flex items-center gap-2 px-4 py-1 border-b border-gray-800 bg-gray-900">
-            <svg class="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Console -->
+        <div class="v-border-t flex flex-col" style="height:120px;">
+          <div class="v-consolebar v-border-b flex items-center gap-2 px-4 py-1">
+            <svg class="w-3.5 h-3.5" style="color:#22c55e" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <span class="text-xs font-semibold text-gray-500 tracking-widest">TERMINAL</span>
+            <span class="text-xs font-semibold v-muted tracking-widest">TERMINAL</span>
           </div>
-          <div id="console" class="flex-1 overflow-auto px-4 py-2 font-mono text-xs text-gray-400 space-y-0.5">
-            <div><span class="text-green-500">➜</span> <span class="text-gray-600">transpiler</span> <span class="text-gray-500">ready to transpile</span></div>
+          <div id="console" class="v-console flex-1 overflow-auto px-4 py-2 font-mono text-xs space-y-0.5 v-muted">
+            <div><span style="color:#22c55e">➜</span> <span class="v-muted">transpiler ready</span></div>
           </div>
         </div>
       </div>
