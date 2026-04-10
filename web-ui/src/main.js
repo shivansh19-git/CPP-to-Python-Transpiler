@@ -4,9 +4,10 @@ const defaultCppCode = `#include <iostream>
 using namespace std;
 
 int main() {
-    for(int x = 50; x < 100; x++) {
-        cout << x << " Hello!" << endl;
-    }
+    cout << " Hello!";
+    int i;
+    cin >> i;
+    cout << i;
     return 0;
 }`;
 
